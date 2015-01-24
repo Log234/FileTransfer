@@ -2,14 +2,6 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.math.*;
-import java.text.*;
-import java.security.*;
-import java.security.cert.*;
-import java.security.interfaces.*;
-import java.security.spec.*;
-import javax.crypto.*;
-import javax.crypto.interfaces.*;
-import javax.crypto.spec.*;
 
 public class Fileshare {
 	public static void main(String[] args) {
@@ -40,7 +32,6 @@ public class Fileshare {
 }
 
 class Server {
-	Encryption en = new Encryption();
 	Scanner in = new Scanner(System.in);
 	ServerSocket serverSocket;
 	ArrayList<Socket> clients = new ArrayList<Socket>();
@@ -55,7 +46,6 @@ class Server {
 			System.exit(1);
 		}
 
-		InitEncrypt(en);
 		ServerMenu();
 		GetFiles();
 		SendFiles();
@@ -96,7 +86,6 @@ class Server {
 		File folder = new File(System.getProperty("user.dir"));
 		files = folder.listFiles();
 
-		System.out.println("\nCurrently selected files: ");
 		System.out.println("\nCurrently selected files: ");
 
 		for (int i = 0; i < files.length; i++) {
@@ -167,16 +156,6 @@ class Server {
 			}
 		} catch (IOException e) {
 			System.out.println("Error occured while updating the que!");
-			e.printStackTrace();
-		}
-	}
-
-	void InitEncrypt(Encryption en) {
-		try {
-			KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-			en.aesCipher = Cipher.getInstance("AES");
-			en.aesKey = keyGen.generateKey();
-		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -310,133 +289,5 @@ class Client {
 		BigDecimal bd = new BigDecimal(value);
 		bd = bd.setScale(places, RoundingMode.HALF_UP);
 		return bd.doubleValue();
-	}
-}
-
-class Encryption {
-	Cipher aesCipher;
-	SecretKey aesKey;
-
-	String EncryptKey(String input) {
-		DateFormat df = new SimpleDateFormat("dd;MM;yy;HH;mm");
-		Calendar calobj = Calendar.getInstance();
-
-		String sKey = (String) aesKey.getEncoded();
-		char[] key = sKey.toCharArray();
-		int[] iKey = new int[key.length];
-		for (int i = 0; i < iKey.length; i++) {
-			iKey[i] = (int) key[i];
-		}
-
-		for (int i = iKey.length-1; i < -1; i--) {
-			if (i != 0) {
-				key[i] = (char) ((((iKey[i]*iKey[i-1]) + 4)-74)*2);
-
-			} else {
-				String solution = df.format(calobj.getTime());
-				char[] cSolution = solution.toCharArray();
-				int[] iSolution = new int[cSolution.length];
-
-				for (int j = 0; j < iSolution.length; j++) {
-					iSolution[j] = (int) cSolution[j];
-				}
-
-				int value = iSolution[0] + iSolution[1] - iSolution[2] + iSolution[3] - iSolution[4];
-
-				key[0] = (char) ((((iKey[0]*value) + 4)-74)*2);
-			}
-		}
-		return new String(key);
-	}
-
-	String Encrypt(String input) {
-		aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
-		byte[] Coded;
-		char[] Coded2;
-
-		Coded = aesCipher.doFinal(input.getBytes());
-		Coded2 = new char[Coded.length];
-
-		for(int i=0;i<Coded.length;i++)
-			Coded2[i] = (char)Coded[i];
-
-		return new String(Coded2);
-
-	}
-
-	int Encrypt(int input) {
-		aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
-		byte[] toCode = ByteBuffer.allocate(4).putInt(input).array();
-		byte[] Coded = aesCipher.doFinal(toCode);
-		return ByteBuffer.wrap(Coded).getInt();
-
-	}
-
-	byte[] Encrypt(byte[] input) {
-		aesCipher.init(Cipher.ENCRYPT_MODE, aesKey);
-		return aesCipher.doFinal(input);
-
-	}
-
-	void DecryptKey(String input) {
-		DateFormat df = new SimpleDateFormat("dd;MM;yy;HH;mm");
-		Calendar calobj = Calendar.getInstance();
-		String solution = df.format(calobj.getTime());
-
-		char[] key = input.toCharArray();
-		int[] iKey = new int[key.length];
-		for (int i = 0; i < iKey.length; i++) {
-			iKey[i] = (int) key[i];
-		}
-
-		for (int i = 0; i < iKey.length; i++) {
-			if (i != 0) {
-				key[i] = (char) ((((iKey[i]/2) +74) -4)/iKey[i-1]);
-
-			} else {
-				char[] cSolution = solution.toCharArray();
-				int[] iSolution = new int[cSolution.length];
-
-				for (int j = 0; j < iSolution.length; j++) {
-					iSolution[j] = (int) cSolution[j];
-				}
-
-				int value = iSolution[0] + iSolution[1] - iSolution[2] + iSolution[3] - iSolution[4];
-
-				key[0] = (char) ((((iKey[i]/2) +74) -4)/value);
-			}
-		}
-		String result =  new String(key);
-
-		aesKey = new SecretKeySpec(result.getBytes(), "AES");
-	}
-
-	String Decrypt(String input) {
-		aesCipher.init(Cipher.DECRYPT_MODE, aesKey);
-		byte[] Coded;
-		char[] Coded2;
-
-		Coded = aesCipher.doFinal(input.getBytes());
-		Coded2 = new char[Coded.length];
-		
-		for(int i=0;i<Coded.length;i++)
-			Coded2[i] = (char)Coded[i];
-
-		return new String(Coded2);
-
-	}
-
-	int Decrypt(int input) {
-		aesCipher.init(Cipher.DECRYPT_MODE, aesKey);
-		byte[] toCode = ByteBuffer.allocate(4).putInt(input).array();
-		byte[] Coded = aesCipher.doFinal(toCode);
-		return ByteBuffer.wrap(Coded).getInt();
-
-	}
-
-	byte[] Decrypt(byte[] input) {
-		aesCipher.init(Cipher.DECRYPT_MODE, aesKey);
-		return aesCipher.doFinal(input);
-
 	}
 }
