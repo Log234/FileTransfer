@@ -232,7 +232,7 @@ class Client {
 				} else if (filesize > 1000000 && filesize < 1000000000) {
 					size = (double)filesize/1000000.0;
 					id = " MB.";
-				} else if (filesize < 1000000000) {
+				} else if (filesize > 1000000000) {
 					size = (double)filesize/1000000000.0;
 					id = " GB.";
 				}
@@ -247,7 +247,6 @@ class Client {
 				dos.writeInt(1);
 				dos.flush();
 
-				System.out.println(bytesRead);
 				while(currentTot < filesize) {
 					bytesRead =
 					is.read(bytearray, currentTot, (bytearray.length-currentTot));
