@@ -54,14 +54,23 @@ class Server {
 
 	void ServerMenu() {
 		String hostName = "ERROR";
+		String ip = "ERROR";
 		try {
 			hostName = InetAddress.getLocalHost().getHostName();
+
+			URL whatismyip = new URL("http://checkip.amazonaws.com");
+			BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+
+			ip = in.readLine();
 		} catch (UnknownHostException e) {
 			System.out.println("Couldn't find host name");
 			e.printStackTrace();
+		} catch (Exception e) {
+			System.out.println("Couldn't find IP");
+			e.printStackTrace();
 		}
 		System.out.println("If on the same network: " + hostName);
-		System.out.println("If connecting remote: ");
+		System.out.println("If connecting remote: " + ip);
 		System.out.println();
 		System.out.print("How many clients are you expecting? ");
 		int nr = in.nextInt();
